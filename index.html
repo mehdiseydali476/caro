@@ -18,7 +18,7 @@
         }
         header {
             text-align: center;
-            padding: 40px 20px 20px;
+            padding: 30px 20px 10px;
             position: relative;
             width: 100%;
             box-sizing: border-box;
@@ -31,15 +31,14 @@
             align-items: center;
             gap: 15px;
         }
-        .nav-btn {
-            padding: 8px 16px;
+        .coins-badge {
             background-color: #1e293b;
-            border: 1px solid #38bdf8;
-            color: #38bdf8;
-            text-decoration: none;
-            border-radius: 6px;
+            border: 1px solid #22c55e;
+            color: #22c55e;
+            padding: 6px 14px;
+            border-radius: 20px;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
         .auth-btn {
             padding: 8px 16px;
@@ -58,41 +57,89 @@
         }
         p.subtitle { color: #94a3b8; font-size: 1.2rem; }
         
-        /* Сетка для карточек игр */
-        .games-grid {
+        /* Главный контейнер Змейки (Разделен пополам) */
+        .snake-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: 1fr 1fr;
             gap: 20px;
             width: 90%;
             max-width: 900px;
             margin-top: 30px;
-        }
-        .game-card {
             background-color: #1e293b;
             border-radius: 12px;
             padding: 20px;
-            text-align: center;
             border: 1px solid #334155;
-            transition: transform 0.2s, border-color 0.2s;
+            box-sizing: border-box;
         }
-        .game-card:hover {
-            transform: translateY(-3px);
-            border-color: #38bdf8;
+
+        @media (max-width: 768px) {
+            .snake-container { grid-template-columns: 1fr; }
         }
-        .game-card h3 { margin-top: 0; color: #f1f5f9; }
-        .game-card p { color: #94a3b8; font-size: 0.9rem; }
-        .btn {
+
+        .snake-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border-right: 1px solid #334155;
+            padding-right: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .snake-info { border-right: none; border-bottom: 1px solid #334155; padding-right: 0; padding-bottom: 20px; }
+        }
+
+        .snake-market {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .snake-market h3 {
+            margin: 0 0 10px 0;
+            color: #22c55e;
+            text-align: center;
+        }
+
+        .skin-card {
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .skin-details { text-align: left; }
+        .skin-name { font-weight: bold; color: #f8fafc; font-size: 0.95rem; }
+        .skin-stats { font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
+
+        .skin-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .btn-buy { background-color: #22c55e; color: #000; }
+        .btn-equip { background-color: #0284c7; color: #fff; }
+        .btn-active { background-color: #475569; color: #fff; cursor: default; }
+
+        .btn-play {
             display: inline-block;
-            margin-top: 10px;
-            padding: 10px 18px;
+            margin-top: 15px;
+            padding: 12px 24px;
             background-color: #0284c7;
             color: white;
             text-decoration: none;
             border-radius: 6px;
             font-weight: bold;
-            transition: background 0.2s;
+            font-size: 1.1rem;
         }
-        .btn:hover { background-color: #0369a1; }
+        .btn-play:hover { background-color: #0369a1; }
     </style>
 </head>
 <body>
@@ -103,20 +150,27 @@
         <p class="subtitle">Wanna play games? Come here!</p>
     </header>
 
-    <main class="games-grid">
-        <div class="game-card">
-            <h3>🐍 Classic Snake</h3>
-            <p>Control the snake, eat apples, and earn Snake Coins!</p>
-            <a href="snake.html" class="btn">Play Now</a>
+    <div class="snake-container">
+        <!-- Левая часть: Игра -->
+        <div class="snake-info">
+            <h2>🐍 Classic Snake</h2>
+            <p style="color: #94a3b8;">Control the snake, eat apples, and earn Green Snake Coins!</p>
+            <a href="snake.html" class="btn-play">Play Now</a>
         </div>
-    </main>
+
+        <!-- Правая часть: Маркет скинов -->
+        <div class="snake-market">
+            <h3>🐍 Snake Market</h3>
+            <div id="skinsList"></div>
+        </div>
+    </div>
 
     <script>
         const currentUser = localStorage.getItem('caro_currentUser');
         const userPanel = document.getElementById('userPanel');
+        let greenCoins = parseInt(localStorage.getItem('caro_snake_coins') || '0');
 
-        let panelHTML = `<a href="shop.html" class="nav-btn">🛒 Market</a>`;
-
+        let panelHTML = `<div class="coins-badge">🟢 <span id="coinCount">${greenCoins}</span></div>`;
         if (currentUser) {
             panelHTML += `
                 <span style="color: #38bdf8; font-weight: bold;">👤 ${currentUser}</span>
@@ -125,13 +179,78 @@
         } else {
             panelHTML += `<a href="auth.html" class="auth-btn">Login / Register</a>`;
         }
-
         userPanel.innerHTML = panelHTML;
 
         function logout() {
             localStorage.removeItem('caro_currentUser');
             location.reload();
         }
+
+        // Логика скинов
+        const skins = [
+            { id: 'skin_1', name: '🟢 Classic Green', speed: 50, lives: 1, price: 0, color: '#22c55e' },
+            { id: 'skin_2', name: '🐍 Emerald Viper', speed: 45, lives: 2, price: 50, color: '#10b981' },
+            { id: 'skin_3', name: '🧪 Toxic Cobra', speed: 40, lives: 3, price: 100, color: '#84cc16' },
+            { id: 'skin_4', name: '🟡 Golden Python', speed: 35, lives: 4, price: 150, color: '#eab308' },
+            { id: 'skin_5', name: '🐉 Cyber Dragon', speed: 30, lives: 5, price: 200, color: '#06b6d4' }
+        ];
+
+        let ownedSkins = JSON.parse(localStorage.getItem('caro_owned_skins') || '["skin_1"]');
+        let activeSkin = localStorage.getItem('caro_active_skin') || 'skin_1';
+
+        function renderSkins() {
+            const listContainer = document.getElementById('skinsList');
+            listContainer.innerHTML = '';
+
+            skins.forEach(skin => {
+                const isOwned = ownedSkins.includes(skin.id);
+                const isActive = activeSkin === skin.id;
+
+                let btnHTML = '';
+                if (isActive) {
+                    btnHTML = `<button class="skin-btn btn-active">Equipped</button>`;
+                } else if (isOwned) {
+                    btnHTML = `<button class="skin-btn btn-equip" onclick="equipSkin('${skin.id}')">Equip</button>`;
+                } else {
+                    btnHTML = `<button class="skin-btn btn-buy" onclick="buySkin('${skin.id}', ${skin.price})">${skin.price} 🟢</button>`;
+                }
+
+                listContainer.innerHTML += `
+                    <div class="skin-card">
+                        <div class="skin-details">
+                            <div class="skin-name" style="color: ${skin.color}">${skin.name}</div>
+                            <div class="skin-stats">Speed: ${skin.speed} | Lives: ${skin.lives} ❤️</div>
+                        </div>
+                        <div>${btnHTML}</div>
+                    </div>
+                `;
+            });
+        }
+
+        window.buySkin = function(skinId, price) {
+            if (greenCoins >= price) {
+                greenCoins -= price;
+                ownedSkins.push(skinId);
+                activeSkin = skinId;
+
+                localStorage.setItem('caro_snake_coins', greenCoins);
+                localStorage.setItem('caro_owned_skins', JSON.stringify(ownedSkins));
+                localStorage.setItem('caro_active_skin', activeSkin);
+
+                document.getElementById('coinCount').innerText = greenCoins;
+                renderSkins();
+            } else {
+                alert('Not enough Green Coins!');
+            }
+        };
+
+        window.equipSkin = function(skinId) {
+            activeSkin = skinId;
+            localStorage.setItem('caro_active_skin', activeSkin);
+            renderSkins();
+        };
+
+        renderSkins();
     </script>
 </body>
 </html>
