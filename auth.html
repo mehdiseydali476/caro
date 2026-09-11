@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CARO - Login / Register</title>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .auth-card {
+            background-color: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 350px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        h2 { color: #38bdf8; margin-bottom: 20px; }
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        label { display: block; margin-bottom: 5px; color: #94a3b8; font-size: 0.9rem; }
+        input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background-color: #0f172a;
+            color: #fff;
+            box-sizing: border-box;
+        }
+        input:focus { outline: none; border-color: #38bdf8; }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #0284c7;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn:hover { background-color: #0369a1; }
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: #38bdf8;
+            margin-top: 15px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        #message { margin-top: 15px; font-size: 0.9rem; }
+        .back-link { display: block; margin-top: 20px; color: #94a3b8; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <div class="auth-card">
+        <h2 id="formTitle">Login</h2>
+        <div class="input-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" placeholder="Enter username">
+        </div>
+        <div class="input-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter password">
+        </div>
+        <button class="btn" id="actionBtn" onclick="handleAuth()">Login</button>
+        <div id="message"></div>
+        <button class="toggle-btn" onclick="toggleMode()" id="toggleText">Don't have an account? Register</button>
+    </div>
+
+    <a href="index.html" class="back-link">← Back to Home Page</a>
+
+    <script>
+        let isLoginMode = true;
+
+        function toggleMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('formTitle').innerText = isLoginMode ? 'Login' : 'Register';
+            document.getElementById('actionBtn').innerText = isLoginMode ? 'Login' : 'Register';
+            document.getElementById('toggleText').innerText = isLoginMode ? "Don't have an account? Register" : "Already have an account? Login";
+            document.getElementById('message').innerText = '';
+        }
+
+        function handleAuth() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            const msg = document.getElementById('message');
+
+            if (!user || !pass) {
+                msg.style.color = '#ef4444';
+                msg.innerText = 'Please fill in all fields!';
+                return;
+            }
+
+            let users = JSON.parse(localStorage.getItem('caro_users')) || {};
+
+            if (isLoginMode) {
+                if (users[user] && users[user] === pass) {
+                    localStorage.setItem('caro_currentUser', user);
+                    msg.style.color = '#22c55e';
+                    msg.innerText = 'Success! Redirecting...';
+                    setTimeout(() => window.location.href = 'index.html', 1000);
+                } else {
+                    msg.style.color = '#ef4444';
+                    msg.innerText = 'Invalid username or password!';
+                }
+            } else {
+                if (users[user]) {
+                    msg.style.color = '#ef4444';
+                    msg.innerText = 'Username already exists!';
+                } else {
+                    users[user] = pass;
+                    localStorage.setItem('caro_users', JSON.stringify(users));
+                    localStorage.setItem('caro_currentUser', user);
+                    msg.style.color = '#22c55e';
+                    msg.innerText = 'Account created! Redirecting...';
+                    setTimeout(() => window.location.href = 'index.html', 1000);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
