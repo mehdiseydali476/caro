@@ -56,18 +56,20 @@
         const ctx = canvas.getContext('2d');
         const grid = 20;
 
+        // Чем меньше speedMs, тем БЫСТРЕЕ двигается змейка.
+        // Скорость 50 = 60ms (очень быстрая), Скорость 30 = 120ms (плавная/медленная)
         const skinsConfig = {
-            'skin_1': { speed: 6, maxLives: 1, color: '#22c55e' },
-            'skin_2': { speed: 5, maxLives: 2, color: '#10b981' },
-            'skin_3': { speed: 4, maxLives: 3, color: '#84cc16' },
-            'skin_4': { speed: 3, maxLives: 4, color: '#eab308' },
-            'skin_5': { speed: 2, maxLives: 5, color: '#06b6d4' }
+            'skin_1': { speedMs: 60,  maxLives: 1, color: '#22c55e' }, // Speed 50
+            'skin_2': { speedMs: 75,  maxLives: 2, color: '#10b981' }, // Speed 45
+            'skin_3': { speedMs: 90,  maxLives: 3, color: '#84cc16' }, // Speed 40
+            'skin_4': { speedMs: 105, maxLives: 4, color: '#eab308' }, // Speed 35
+            'skin_5': { speedMs: 120, maxLives: 5, color: '#06b6d4' }  // Speed 30
         };
 
         const activeSkinId = localStorage.getItem('caro_active_skin') || 'skin_1';
         const currentSkin = skinsConfig[activeSkinId] || skinsConfig['skin_1'];
 
-        let count = 0;
+        let lastRenderTime = 0;
         let score = 0;
         let pendingScore = 0;
         let lives = currentSkin.maxLives;
@@ -124,11 +126,13 @@
             }
         }
 
-        function loop() {
-            requestAnimationFrame(loop);
+        function gameLoop(currentTime) {
+            window.requestAnimationFrame(gameLoop);
 
-            if (++count < currentSkin.speed) return;
-            count = 0;
+            const secondsSinceLastRender = (currentTime - lastRenderTime) / 1000;
+            if (secondsSinceLastRender < currentSkin.speedMs / 1000) return;
+
+            lastRenderTime = currentTime;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -147,16 +151,16 @@
                 snake.cells.pop();
             }
 
-            // Apple
+            // Яблоко
             ctx.fillStyle = '#ef4444';
             ctx.fillRect(apple.x, apple.y, grid - 1, grid - 1);
 
-            // Snake
+            // Змейка
             snake.cells.forEach((cell, index) => {
                 ctx.fillStyle = currentSkin.color;
                 ctx.fillRect(cell.x, cell.y, grid - 1, grid - 1);
 
-                // Eat Apple
+                // Поедание яблока
                 if (cell.x === apple.x && cell.y === apple.y) {
                     snake.maxCells++;
                     const pointsGained = 10;
@@ -171,7 +175,7 @@
                     apple.y = getRandomInt(0, 20) * grid;
                 }
 
-                // Collision
+                // Столкновения
                 for (let i = index + 1; i < snake.cells.length; i++) {
                     if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
                         lives--;
@@ -199,7 +203,7 @@
             else if (e.key === 'ArrowDown' && snake.dy === 0) { snake.dx = 0; snake.dy = grid; }
         });
 
-        requestAnimationFrame(loop);
+        window.requestAnimationFrame(gameLoop);
     </script>
 </body>
 </html>
