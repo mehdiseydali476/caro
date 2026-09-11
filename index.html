@@ -57,9 +57,11 @@
             letter-spacing: 2px;
         }
         p.subtitle { color: #94a3b8; font-size: 1.2rem; }
+        
+        /* Сетка для карточек игр */
         .games-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 20px;
             width: 90%;
             max-width: 900px;
@@ -101,13 +103,13 @@
         <p class="subtitle">Wanna play games? Come here!</p>
     </header>
 
-    <div class="games-grid">
+    <main class="games-grid">
         <div class="game-card">
             <h3>🐍 Classic Snake</h3>
             <p>Control the snake, eat apples, and earn Snake Coins!</p>
             <a href="snake.html" class="btn">Play Now</a>
         </div>
-    </div>
+    </main>
 
     <script>
         const currentUser = localStorage.getItem('caro_currentUser');
