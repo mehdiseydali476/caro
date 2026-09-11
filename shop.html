@@ -47,30 +47,13 @@
             max-width: 900px;
             margin-top: 30px;
         }
-        .item-card {
-            background-color: #1e293b;
-            border-radius: 12px;
-            padding: 20px;
+        .empty-market {
+            grid-column: 1 / -1;
             text-align: center;
-            border: 1px solid #334155;
-            transition: transform 0.2s;
+            color: #94a3b8;
+            font-size: 1.2rem;
+            margin-top: 40px;
         }
-        .item-card:hover { transform: translateY(-3px); }
-        .item-card h3 { margin-top: 0; color: #f1f5f9; }
-        .item-card p { color: #94a3b8; font-size: 0.9rem; }
-        .buy-btn {
-            margin-top: 10px;
-            padding: 10px 18px;
-            background-color: #0284c7;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .buy-btn:hover { background-color: #0369a1; }
-        .buy-btn:disabled { background-color: #475569; cursor: not-allowed; }
         .back-link { margin-top: 30px; color: #38bdf8; text-decoration: none; font-weight: bold; }
     </style>
 </head>
@@ -79,82 +62,21 @@
     <header>
         <h1>CARO Market 🛒</h1>
         <div class="currency-container">
-            <div class="badge">🐍 Snake Blue Coins: <span id="snakeCoins">0</span> 🔵</div>
+            <div class="badge">🐍 Snake Coins: <span id="snakeCoins">0</span> 🔵</div>
         </div>
     </header>
 
     <div class="shop-grid">
-        <div class="item-card">
-            <h3>🟢 Neon Green Skin</h3>
-            <p>Classic Snake Body Color</p>
-            <button class="buy-btn" id="btn_green" onclick="selectSkin('green')">Equipped</button>
-        </div>
-        <div class="item-card">
-            <h3>🔵 Cyan Speedster Skin</h3>
-            <p>Changes Snake Body to Cyan</p>
-            <button class="buy-btn" id="btn_cyan" onclick="buyOrSelect('cyan', 50)">Buy (50 🔵)</button>
-        </div>
-        <div class="item-card">
-            <h3>🟣 Purple Phantom Skin</h3>
-            <p>Changes Snake Body to Purple</p>
-            <button class="buy-btn" id="btn_purple" onclick="buyOrSelect('purple', 100)">Buy (100 🔵)</button>
+        <div class="empty-market">
+            <p>Market is empty right now. New items coming soon!</p>
         </div>
     </div>
 
     <a href="index.html" class="back-link">← Back to Home Page</a>
 
     <script>
-        let snakeCoins = parseInt(localStorage.getItem('caro_snake_coins') || '0');
-        let ownedSkins = JSON.parse(localStorage.getItem('caro_owned_skins') || '["green"]');
-        let currentSkin = localStorage.getItem('caro_active_skin') || 'green';
-
-        function updateUI() {
-            document.getElementById('snakeCoins').innerText = snakeCoins;
-
-            ['green', 'cyan', 'purple'].forEach(skin => {
-                const btn = document.getElementById('btn_' + skin);
-                if (!btn) return;
-
-                if (currentSkin === skin) {
-                    btn.innerText = 'Equipped';
-                    btn.disabled = true;
-                    btn.style.backgroundColor = '#22c55e';
-                } else if (ownedSkins.includes(skin)) {
-                    btn.innerText = 'Select';
-                    btn.disabled = false;
-                    btn.style.backgroundColor = '#0284c7';
-                }
-            });
-        }
-
-        function buyOrSelect(skin, price) {
-            if (ownedSkins.includes(skin)) {
-                selectSkin(skin);
-            } else {
-                if (snakeCoins >= price) {
-                    snakeCoins -= price;
-                    ownedSkins.push(skin);
-                    currentSkin = skin;
-
-                    localStorage.setItem('caro_snake_coins', snakeCoins);
-                    localStorage.setItem('caro_owned_skins', JSON.stringify(ownedSkins));
-                    localStorage.setItem('caro_active_skin', currentSkin);
-
-                    updateUI();
-                    alert('Skin purchased and equipped!');
-                } else {
-                    alert('Not enough Blue Coins!');
-                }
-            }
-        }
-
-        function selectSkin(skin) {
-            currentSkin = skin;
-            localStorage.setItem('caro_active_skin', currentSkin);
-            updateUI();
-        }
-
-        updateUI();
+        const snakeCoins = parseInt(localStorage.getItem('caro_snake_coins') || '0');
+        document.getElementById('snakeCoins').innerText = snakeCoins;
     </script>
 </body>
 </html>
