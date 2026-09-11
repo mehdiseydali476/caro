@@ -96,13 +96,22 @@
                 snake.cells.pop();
             }
 
+            // Рисуем яблоко
             ctx.fillStyle = '#ef4444';
             ctx.fillRect(apple.x, apple.y, grid - 1, grid - 1);
 
-            ctx.fillStyle = '#22c55e';
+            // Рисуем змею
             snake.cells.forEach((cell, index) => {
+                // Если это первый элемент в массиве (индекс 0), это голова
+                if (index === 0) {
+                    ctx.fillStyle = '#15803d'; // Темно-зеленый для головы
+                } else {
+                    ctx.fillStyle = '#22c55e'; // Обычный зеленый для тела
+                }
+                
                 ctx.fillRect(cell.x, cell.y, grid - 1, grid - 1);
 
+                // Змея съела яблоко
                 if (cell.x === apple.x && cell.y === apple.y) {
                     snake.maxCells++;
                     score += 10;
@@ -118,8 +127,10 @@
                     apple.y = getRandomInt(0, 20) * grid;
                 }
 
+                // Проверка столкновения с собой
                 for (let i = index + 1; i < snake.cells.length; i++) {
                     if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
+                        // Игра окончена, сброс параметров
                         snake.x = 160;
                         snake.y = 160;
                         snake.cells = [];
