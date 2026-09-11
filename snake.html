@@ -17,7 +17,14 @@
             margin: 0;
         }
         h1 { color: #38bdf8; margin-bottom: 10px; }
-        #score { font-size: 1.2rem; margin-bottom: 15px; color: #94a3b8; }
+        .score-board {
+            display: flex;
+            gap: 20px;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #94a3b8;
+        }
+        .score-board span { color: #38bdf8; font-weight: bold; }
         canvas {
             border: 2px solid #38bdf8;
             background-color: #1e293b;
@@ -34,7 +41,10 @@
 <body>
 
     <h1>Snake Game</h1>
-    <div id="score">Score: 0</div>
+    <div class="score-board">
+        <div>Score: <span id="score">0</span></div>
+        <div>High Score: <span id="highScore">0</span></div>
+    </div>
     <canvas id="game" width="400" height="400"></canvas>
     <a href="index.html" class="back-btn">← Back to Home Page</a>
 
@@ -44,6 +54,9 @@
         const grid = 20;
         let count = 0;
         let score = 0;
+        let highScore = localStorage.getItem('snakeHighScore') || 0;
+
+        document.getElementById('highScore').innerText = highScore;
 
         let snake = {
             x: 160,
@@ -93,7 +106,14 @@
                 if (cell.x === apple.x && cell.y === apple.y) {
                     snake.maxCells++;
                     score += 10;
-                    document.getElementById('score').innerText = 'Score: ' + score;
+                    document.getElementById('score').innerText = score;
+                    
+                    if (score > highScore) {
+                        highScore = score;
+                        localStorage.setItem('snakeHighScore', highScore);
+                        document.getElementById('highScore').innerText = highScore;
+                    }
+
                     apple.x = getRandomInt(0, 20) * grid;
                     apple.y = getRandomInt(0, 20) * grid;
                 }
@@ -107,7 +127,7 @@
                         snake.dx = grid;
                         snake.dy = 0;
                         score = 0;
-                        document.getElementById('score').innerText = 'Score: ' + score;
+                        document.getElementById('score').innerText = score;
                         apple.x = getRandomInt(0, 20) * grid;
                         apple.y = getRandomInt(0, 20) * grid;
                     }
