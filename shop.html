@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CARO - Market</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        header {
+            text-align: center;
+            padding: 30px 20px 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        h1 { color: #38bdf8; margin-bottom: 5px; }
+        .currency-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        .badge {
+            background-color: #1e293b;
+            border: 1px solid #38bdf8;
+            color: #38bdf8;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            width: 90%;
+            max-width: 900px;
+            margin-top: 30px;
+        }
+        .item-card {
+            background-color: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #334155;
+        }
+        .item-card h3 { margin-top: 0; color: #f1f5f9; }
+        .item-card p { color: #94a3b8; font-size: 0.9rem; }
+        .buy-btn {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background-color: #0284c7;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .buy-btn:hover { background-color: #0369a1; }
+        .back-link { margin-top: 30px; color: #38bdf8; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>CARO Market 🛒</h1>
+        <div class="currency-container">
+            <div class="badge">🐍 Snake Coins: <span id="snakeCoins">0</span> 🪙</div>
+        </div>
+    </header>
+
+    <div class="shop-grid">
+        <div class="item-card">
+            <h3>🟢 Neon Green Skin</h3>
+            <p>Skins for Snake Game</p>
+            <button class="buy-btn" onclick="buyItem('neon_green', 50)">Buy (50 🪙)</button>
+        </div>
+        <div class="item-card">
+            <h3>🔵 Cyan Speedster Skin</h3>
+            <p>Skins for Snake Game</p>
+            <button class="buy-btn" onclick="buyItem('cyan_speed', 100)">Buy (100 🪙)</button>
+        </div>
+    </div>
+
+    <a href="index.html" class="back-link">← Back to Home Page</a>
+
+    <script>
+        const snakeCoins = localStorage.getItem('caro_snake_coins') || 0;
+        document.getElementById('snakeCoins').innerText = snakeCoins;
+
+        function buyItem(itemId, price) {
+            let coins = parseInt(localStorage.getItem('caro_snake_coins') || '0');
+            if (coins >= price) {
+                coins -= price;
+                localStorage.setItem('caro_snake_coins', coins);
+                document.getElementById('snakeCoins').innerText = coins;
+                alert('Item purchased successfully!');
+            } else {
+                alert('Not enough Snake Coins!');
+            }
+        }
+    </script>
+</body>
+</html>
