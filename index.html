@@ -59,10 +59,10 @@
         p.subtitle { color: #94a3b8; font-size: 1.2rem; }
         .games-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             width: 90%;
-            max-width: 1000px;
+            max-width: 900px;
             margin-top: 30px;
         }
         .game-card {
@@ -74,29 +74,29 @@
             transition: transform 0.2s, border-color 0.2s;
         }
         .game-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
             border-color: #38bdf8;
         }
         .game-card h3 { margin-top: 0; color: #f1f5f9; }
-        .game-card p { color: #94a3b8; font-size: 0.95rem; }
+        .game-card p { color: #94a3b8; font-size: 0.9rem; }
         .btn {
             display: inline-block;
-            margin-top: 15px;
-            padding: 10px 20px;
+            margin-top: 10px;
+            padding: 10px 18px;
             background-color: #0284c7;
             color: white;
             text-decoration: none;
             border-radius: 6px;
             font-weight: bold;
+            transition: background 0.2s;
         }
+        .btn:hover { background-color: #0369a1; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="user-panel" id="userPanel">
-            <!-- User panel content -->
-        </div>
+        <div class="user-panel" id="userPanel"></div>
         <h1>CARO GAMES</h1>
         <p class="subtitle">Wanna play games? Come here!</p>
     </header>
