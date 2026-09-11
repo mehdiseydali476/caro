@@ -20,13 +20,16 @@
         .score-board {
             display: flex;
             gap: 20px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             margin-bottom: 15px;
             color: #94a3b8;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         .score-board span { font-weight: bold; }
         .coins-text { color: #22c55e !important; }
         .lives-text { color: #ef4444 !important; }
+        .highscore-text { color: #eab308 !important; }
         canvas {
             border: 2px solid #22c55e;
             background-color: #1e293b;
@@ -45,6 +48,7 @@
     <h1>Snake Game</h1>
     <div class="score-board">
         <div>Score: <span id="score" style="color:#38bdf8">0</span></div>
+        <div>High Score: <span id="highScore" class="highscore-text">0</span></div>
         <div>Lives: <span id="lives" class="lives-text">1</span> ❤️</div>
         <div>Coins: 🟢 <span id="coins" class="coins-text">0</span></div>
     </div>
@@ -69,12 +73,14 @@
 
         let lastRenderTime = 0;
         let score = 0;
+        let highScore = parseInt(localStorage.getItem('caro_snake_highscore') || '0');
         let pendingScore = 0;
         let lives = currentSkin.maxLives;
         let greenCoins = parseInt(localStorage.getItem('caro_snake_coins') || '0');
 
         document.getElementById('coins').innerText = greenCoins;
         document.getElementById('lives').innerText = lives;
+        document.getElementById('highScore').innerText = highScore;
 
         let snake = {
             x: 160,
@@ -103,7 +109,7 @@
             }
         }
 
-        function resetSnake() {
+        function resetSnakePosition() {
             snake.x = 160;
             snake.y = 160;
             snake.cells = [];
@@ -134,6 +140,14 @@
                 greenCoins += coinsAwarded;
                 localStorage.setItem('caro_snake_coins', greenCoins);
                 document.getElementById('coins').innerText = greenCoins;
+            }
+        }
+
+        function updateHighScore() {
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('caro_snake_highscore', highScore);
+                document.getElementById('highScore').innerText = highScore;
             }
         }
 
@@ -183,13 +197,14 @@
                     score += pointsGained;
                     pendingScore += pointsGained;
 
+                    updateHighScore();
                     checkCoinRewards();
 
                     document.getElementById('score').innerText = score;
                     spawnApple();
                 }
 
-                // Столкновения
+                // Столкновение со своим хвостом
                 for (let i = index + 1; i < snake.cells.length; i++) {
                     if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
                         hitSelf = true;
@@ -202,14 +217,15 @@
                 document.getElementById('lives').innerText = lives;
 
                 if (lives <= 0) {
-                    alert('Game Over!');
+                    // Окончательный Game Over при 0 жизней
                     lives = currentSkin.maxLives;
                     score = 0;
                     pendingScore = 0;
                     document.getElementById('lives').innerText = lives;
                     document.getElementById('score').innerText = score;
                 }
-                resetSnake();
+
+                resetSnakePosition();
                 spawnApple();
             }
         }
