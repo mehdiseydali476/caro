@@ -16,7 +16,7 @@
             min-height: 100vh;
             margin: 0;
         }
-        h1 { color: #38bdf8; margin-bottom: 10px; }
+        h1 { color: #22c55e; margin-bottom: 10px; }
         .score-board {
             display: flex;
             gap: 20px;
@@ -24,9 +24,11 @@
             margin-bottom: 15px;
             color: #94a3b8;
         }
-        .score-board span { color: #38bdf8; font-weight: bold; }
+        .score-board span { font-weight: bold; }
+        .coins-text { color: #22c55e !important; }
+        .lives-text { color: #ef4444 !important; }
         canvas {
-            border: 2px solid #38bdf8;
+            border: 2px solid #22c55e;
             background-color: #1e293b;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
@@ -42,21 +44,37 @@
 
     <h1>Snake Game</h1>
     <div class="score-board">
-        <div>Score: <span id="score">0</span></div>
-        <div>High Score: <span id="highScore">0</span></div>
+        <div>Score: <span id="score" style="color:#38bdf8">0</span></div>
+        <div>Lives: <span id="lives" class="lives-text">1</span> ❤️</div>
+        <div>Coins: 🟢 <span id="coins" class="coins-text">0</span></div>
     </div>
     <canvas id="game" width="400" height="400"></canvas>
-    <a href="index.html" class="back-btn">← Back to Home Page</a>
+    <a href="index.html" class="back-btn">← Back to Main Page</a>
 
     <script>
         const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
         const grid = 20;
+
+        const skinsConfig = {
+            'skin_1': { speed: 6, maxLives: 1, color: '#22c55e' },
+            'skin_2': { speed: 5, maxLives: 2, color: '#10b981' },
+            'skin_3': { speed: 4, maxLives: 3, color: '#84cc16' },
+            'skin_4': { speed: 3, maxLives: 4, color: '#eab308' },
+            'skin_5': { speed: 2, maxLives: 5, color: '#06b6d4' }
+        };
+
+        const activeSkinId = localStorage.getItem('caro_active_skin') || 'skin_1';
+        const currentSkin = skinsConfig[activeSkinId] || skinsConfig['skin_1'];
+
         let count = 0;
         let score = 0;
-        let highScore = localStorage.getItem('snakeHighScore') || 0;
+        let pendingScore = 0;
+        let lives = currentSkin.maxLives;
+        let greenCoins = parseInt(localStorage.getItem('caro_snake_coins') || '0');
 
-        document.getElementById('highScore').innerText = highScore;
+        document.getElementById('coins').innerText = greenCoins;
+        document.getElementById('lives').innerText = lives;
 
         let snake = {
             x: 160,
@@ -73,10 +91,43 @@
             return Math.floor(Math.random() * (max - min)) + min;
         }
 
+        function resetSnake() {
+            snake.x = 160;
+            snake.y = 160;
+            snake.cells = [];
+            snake.maxCells = 4;
+            snake.dx = grid;
+            snake.dy = 0;
+            pendingScore = 0;
+        }
+
+        function checkCoinRewards() {
+            let coinsAwarded = 0;
+
+            while (pendingScore >= 500) {
+                coinsAwarded += 100;
+                pendingScore -= 500;
+            }
+            while (pendingScore >= 250) {
+                coinsAwarded += 50;
+                pendingScore -= 250;
+            }
+            while (pendingScore >= 150) {
+                coinsAwarded += 20;
+                pendingScore -= 150;
+            }
+
+            if (coinsAwarded > 0) {
+                greenCoins += coinsAwarded;
+                localStorage.setItem('caro_snake_coins', greenCoins);
+                document.getElementById('coins').innerText = greenCoins;
+            }
+        }
+
         function loop() {
             requestAnimationFrame(loop);
 
-            if (++count < 6) return;
+            if (++count < currentSkin.speed) return;
             count = 0;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -96,49 +147,44 @@
                 snake.cells.pop();
             }
 
-            // Рисуем яблоко
+            // Apple
             ctx.fillStyle = '#ef4444';
             ctx.fillRect(apple.x, apple.y, grid - 1, grid - 1);
 
-            // Рисуем змею
+            // Snake
             snake.cells.forEach((cell, index) => {
-                // Если это первый элемент в массиве (индекс 0), это голова
-                if (index === 0) {
-                    ctx.fillStyle = '#15803d'; // Темно-зеленый для головы
-                } else {
-                    ctx.fillStyle = '#22c55e'; // Обычный зеленый для тела
-                }
-                
+                ctx.fillStyle = currentSkin.color;
                 ctx.fillRect(cell.x, cell.y, grid - 1, grid - 1);
 
-                // Змея съела яблоко
+                // Eat Apple
                 if (cell.x === apple.x && cell.y === apple.y) {
                     snake.maxCells++;
-                    score += 10;
+                    const pointsGained = 10;
+                    score += pointsGained;
+                    pendingScore += pointsGained;
+
+                    checkCoinRewards();
+
                     document.getElementById('score').innerText = score;
-                    
-                    if (score > highScore) {
-                        highScore = score;
-                        localStorage.setItem('snakeHighScore', highScore);
-                        document.getElementById('highScore').innerText = highScore;
-                    }
 
                     apple.x = getRandomInt(0, 20) * grid;
                     apple.y = getRandomInt(0, 20) * grid;
                 }
 
-                // Проверка столкновения с собой
+                // Collision
                 for (let i = index + 1; i < snake.cells.length; i++) {
                     if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
-                        // Игра окончена, сброс параметров
-                        snake.x = 160;
-                        snake.y = 160;
-                        snake.cells = [];
-                        snake.maxCells = 4;
-                        snake.dx = grid;
-                        snake.dy = 0;
-                        score = 0;
-                        document.getElementById('score').innerText = score;
+                        lives--;
+                        document.getElementById('lives').innerText = lives;
+
+                        if (lives <= 0) {
+                            alert('Game Over!');
+                            lives = currentSkin.maxLives;
+                            document.getElementById('lives').innerText = lives;
+                            score = 0;
+                            document.getElementById('score').innerText = score;
+                        }
+                        resetSnake();
                         apple.x = getRandomInt(0, 20) * grid;
                         apple.y = getRandomInt(0, 20) * grid;
                     }
@@ -150,7 +196,7 @@
             if (e.key === 'ArrowLeft' && snake.dx === 0) { snake.dx = -grid; snake.dy = 0; }
             else if (e.key === 'ArrowUp' && snake.dy === 0) { snake.dy = -grid; snake.dx = 0; }
             else if (e.key === 'ArrowRight' && snake.dx === 0) { snake.dx = grid; snake.dy = 0; }
-            else if (e.key === 'ArrowDown' && snake.dy === 0) { snake.dy = grid; snake.dx = 0; }
+            else if (e.key === 'ArrowDown' && snake.dy === 0) { snake.dx = 0; snake.dy = grid; }
         });
 
         requestAnimationFrame(loop);
