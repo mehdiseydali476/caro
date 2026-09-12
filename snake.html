@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +15,7 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
+            padding: 20px 0;
         }
         h1 { color: #22c55e; margin-bottom: 10px; }
         .score-board {
@@ -54,13 +55,73 @@
             background-color: #38bdf8;
             color: #0f172a;
         }
-        .shop-btn {
-            color: #eab308;
-            border-color: #eab308;
+
+        /* Встроенный Маркет */
+        .shop-container {
+            margin-top: 25px;
+            background-color: #1e293b;
+            border: 2px solid #eab308;
+            border-radius: 12px;
+            padding: 20px;
+            width: 400px;
+            box-sizing: border-box;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
         }
-        .shop-btn:hover {
+        .shop-title {
+            color: #eab308;
+            font-size: 1.2rem;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .shop-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #0f172a;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .skin-color-preview {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .item-btn {
             background-color: #eab308;
             color: #0f172a;
+            border: none;
+            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .item-btn:hover {
+            background-color: #ca8a04;
+            color: #fff;
+        }
+        .item-btn.active {
+            background-color: #22c55e;
+            color: #0f172a;
+            cursor: default;
+        }
+        .item-btn.disabled {
+            background-color: #475569;
+            color: #94a3b8;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -72,14 +133,18 @@
         <div>High Score: <span id="highScore" class="highscore-text">0</span></div>
         <div>Lives: <span id="lives" class="lives-text">1</span> ❤️</div>
         <div>Coins: 🟢 <span id="coins" class="coins-text">0</span></div>
-        <a href="shop.html" class="nav-btn shop-btn">🛒 Shop</a>
     </div>
     
     <canvas id="game" width="400" height="400"></canvas>
 
+    <!-- Встроенный Маркет Скинов -->
+    <div class="shop-container">
+        <h3 class="shop-title">🛒 Магазин Скинов</h3>
+        <div class="shop-grid" id="shopList"></div>
+    </div>
+
     <div class="nav-links">
         <a href="index.html" class="nav-btn">← Main Menu</a>
-        <a href="shop.html" class="nav-btn shop-btn">🛒 Skin Shop</a>
     </div>
 
     <script>
@@ -87,16 +152,17 @@
         const ctx = canvas.getContext('2d');
         const grid = 20;
 
-        const skinsConfig = {
-            'skin_1': { speedMs: 60,  maxLives: 1, color: '#22c55e', headColor: '#4ade80' },
-            'skin_2': { speedMs: 75,  maxLives: 2, color: '#10b981', headColor: '#34d399' },
-            'skin_3': { speedMs: 90,  maxLives: 3, color: '#84cc16', headColor: '#a3e635' },
-            'skin_4': { speedMs: 105, maxLives: 4, color: '#eab308', headColor: '#fde047' },
-            'skin_5': { speedMs: 120, maxLives: 5, color: '#06b6d4', headColor: '#67e8f9' }
-        };
+        const skinsConfig = [
+            { id: 'skin_1', name: 'Классик (1 жизнь)', price: 0, speedMs: 60, maxLives: 1, color: '#22c55e', headColor: '#4ade80' },
+            { id: 'skin_2', name: 'Изумруд (2 жизни)', price: 100, speedMs: 75, maxLives: 2, color: '#10b981', headColor: '#34d399' },
+            { id: 'skin_3', name: 'Лайм (3 жизни)', price: 250, speedMs: 90, maxLives: 3, color: '#84cc16', headColor: '#a3e635' },
+            { id: 'skin_4', name: 'Золото (4 жизни)', price: 500, speedMs: 105, maxLives: 4, color: '#eab308', headColor: '#fde047' },
+            { id: 'skin_5', name: 'Кибер (5 жизней)', price: 1000, speedMs: 120, maxLives: 5, color: '#06b6d4', headColor: '#67e8f9' }
+        ];
 
-        const activeSkinId = localStorage.getItem('caro_active_skin') || 'skin_1';
-        const currentSkin = skinsConfig[activeSkinId] || skinsConfig['skin_1'];
+        let ownedSkins = JSON.parse(localStorage.getItem('caro_owned_skins') || '["skin_1"]');
+        let activeSkinId = localStorage.getItem('caro_active_skin') || 'skin_1';
+        let currentSkin = skinsConfig.find(s => s.id === activeSkinId) || skinsConfig[0];
 
         let lastRenderTime = 0;
         let score = 0;
@@ -109,23 +175,12 @@
         document.getElementById('lives').innerText = lives;
         document.getElementById('highScore').innerText = highScore;
 
-        let snake = {
-            x: 160,
-            y: 160,
-            dx: grid,
-            dy: 0,
-            cells: [],
-            maxCells: 4
-        };
-
+        let snake = { x: 160, y: 160, dx: grid, dy: 0, cells: [], maxCells: 4 };
         let nextDx = grid;
         let nextDy = 0;
-
         let apple = { x: 320, y: 320 };
 
-        function getRandomInt(min, max) {
-            return Math.floor(Math.random() * (max - min)) + min;
-        }
+        function getRandomInt(min, max) { return Math.floor(Math.random() * (max - min)) + min; }
 
         function spawnApple() {
             let valid = false;
@@ -136,20 +191,68 @@
             }
         }
 
-        function resetSnakePosition() {
+        function respawnSnake() {
             snake.x = 160;
             snake.y = 160;
-            snake.cells = [];
-            snake.maxCells = 4;
             snake.dx = grid;
             snake.dy = 0;
             nextDx = grid;
             nextDy = 0;
+            const currentLen = snake.maxCells;
+            snake.cells = [];
+            for (let i = 0; i < currentLen; i++) {
+                snake.cells.push({ x: 160 - (i * grid), y: 160 });
+            }
         }
+
+        function renderShop() {
+            const list = document.getElementById('shopList');
+            list.innerHTML = '';
+
+            skinsConfig.forEach(skin => {
+                const isOwned = ownedSkins.includes(skin.id);
+                const isActive = activeSkinId === skin.id;
+
+                const item = document.createElement('div');
+                item.className = 'shop-item';
+                item.innerHTML = `
+                    <div class="item-info">
+                        <span class="skin-color-preview" style="background:${skin.color}"></span>
+                        <span>${skin.name}</span>
+                    </div>
+                    <div>
+                        ${isActive ? `<button class="item-btn active">Выбран</button>` : 
+                          isOwned ? `<button class="item-btn" onclick="selectSkin('${skin.id}')">Надеть</button>` :
+                          `<button class="item-btn ${greenCoins < skin.price ? 'disabled' : ''}" onclick="buySkin('${skin.id}', ${skin.price})">Купить (${skin.price} 🟢)</button>`}
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        window.selectSkin = function(id) {
+            activeSkinId = id;
+            localStorage.setItem('caro_active_skin', id);
+            currentSkin = skinsConfig.find(s => s.id === id);
+            lives = currentSkin.maxLives;
+            document.getElementById('lives').innerText = lives;
+            renderShop();
+        };
+
+        window.buySkin = function(id, price) {
+            if (greenCoins >= price) {
+                greenCoins -= price;
+                localStorage.setItem('caro_snake_coins', greenCoins);
+                document.getElementById('coins').innerText = greenCoins;
+
+                ownedSkins.push(id);
+                localStorage.setItem('caro_owned_skins', JSON.stringify(ownedSkins));
+                selectSkin(id);
+            }
+        };
 
         function checkCoinRewards() {
             let coinsAwarded = 0;
-
             while (pendingScore >= 500) { coinsAwarded += 100; pendingScore -= 500; }
             while (pendingScore >= 250) { coinsAwarded += 50;  pendingScore -= 250; }
             while (pendingScore >= 150) { coinsAwarded += 20;  pendingScore -= 150; }
@@ -158,6 +261,7 @@
                 greenCoins += coinsAwarded;
                 localStorage.setItem('caro_snake_coins', greenCoins);
                 document.getElementById('coins').innerText = greenCoins;
+                renderShop();
             }
         }
 
@@ -176,7 +280,6 @@
             if (secondsSinceLastRender < currentSkin.speedMs / 1000) return;
 
             lastRenderTime = currentTime;
-
             snake.dx = nextDx;
             snake.dy = nextDy;
 
@@ -197,21 +300,41 @@
                 snake.cells.pop();
             }
 
-            // Отрисовка яблока
+            let hitSelf = false;
+            for (let i = 1; i < snake.cells.length; i++) {
+                if (snake.cells[0].x === snake.cells[i].x && snake.cells[0].y === snake.cells[i].y) {
+                    hitSelf = true;
+                    break;
+                }
+            }
+
+            if (hitSelf) {
+                lives--;
+                document.getElementById('lives').innerText = lives;
+
+                if (lives <= 0) {
+                    lives = currentSkin.maxLives;
+                    score = 0;
+                    pendingScore = 0;
+                    snake.maxCells = 4;
+                    document.getElementById('lives').innerText = lives;
+                    document.getElementById('score').innerText = score;
+                }
+
+                respawnSnake();
+                spawnApple();
+                return;
+            }
+
             ctx.fillStyle = '#ef4444';
             ctx.fillRect(apple.x, apple.y, grid - 1, grid - 1);
 
-            let hitSelf = false;
-
-            // Отрисовка змейки
             snake.cells.forEach((cell, index) => {
                 const isHead = index === 0;
 
-                // Окраска головы и тела
                 ctx.fillStyle = isHead ? currentSkin.headColor : currentSkin.color;
                 ctx.fillRect(cell.x, cell.y, grid - 1, grid - 1);
 
-                // Отрисовка "глаза" на голове
                 if (isHead) {
                     ctx.fillStyle = '#000';
                     let eyeX = cell.x + 10;
@@ -227,7 +350,6 @@
                     ctx.fill();
                 }
 
-                // Поедание яблока
                 if (cell.x === apple.x && cell.y === apple.y) {
                     snake.maxCells++;
                     const pointsGained = 10;
@@ -240,30 +362,7 @@
                     document.getElementById('score').innerText = score;
                     spawnApple();
                 }
-
-                // Столкновение со своим хвостом
-                for (let i = index + 1; i < snake.cells.length; i++) {
-                    if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
-                        hitSelf = true;
-                    }
-                }
             });
-
-            if (hitSelf) {
-                lives--;
-                document.getElementById('lives').innerText = lives;
-
-                if (lives <= 0) {
-                    lives = currentSkin.maxLives;
-                    score = 0;
-                    pendingScore = 0;
-                    document.getElementById('lives').innerText = lives;
-                    document.getElementById('score').innerText = score;
-                }
-
-                resetSnakePosition();
-                spawnApple();
-            }
         }
 
         document.addEventListener('keydown', (e) => {
@@ -284,7 +383,9 @@
             }
         });
 
+        respawnSnake();
         spawnApple();
+        renderShop();
         window.requestAnimationFrame(gameLoop);
     </script>
 </body>
