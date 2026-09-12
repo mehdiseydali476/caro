@@ -18,19 +18,9 @@
             min-height: 100vh;
             box-sizing: border-box;
         }
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        h1 {
-            color: #ef4444;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-        p {
-            color: #94a3b8;
-            font-size: 1.1rem;
-        }
+        header { text-align: center; margin-bottom: 40px; }
+        h1 { color: #ef4444; font-size: 2.5rem; margin-bottom: 10px; }
+        p { color: #94a3b8; font-size: 1.1rem; }
         .modes-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -49,45 +39,29 @@
             justify-content: space-between;
             box-shadow: 0 10px 20px rgba(0,0,0,0.3);
             transition: transform 0.2s, border-color 0.2s;
-            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
         }
-        .mode-card:hover {
-            transform: translateY(-5px);
-        }
+        .mode-card:hover { transform: translateY(-5px); }
         .card-shop:hover { border-color: #eab308; }
         .card-levels:hover { border-color: #38bdf8; }
         .card-ranked:hover { border-color: #ef4444; }
 
-        .mode-icon {
-            font-size: 3.5rem;
-            margin-bottom: 15px;
-        }
-        .mode-card h2 {
-            margin: 0 0 10px 0;
-            color: #f8fafc;
-        }
-        .mode-card p {
-            font-size: 0.95rem;
-            color: #94a3b8;
-            margin-bottom: 20px;
-            flex-grow: 1;
-        }
+        .mode-icon { font-size: 3.5rem; margin-bottom: 15px; }
+        .mode-card h2 { margin: 0 0 10px 0; color: #f8fafc; }
+        .mode-card p { font-size: 0.95rem; color: #94a3b8; margin-bottom: 20px; flex-grow: 1; }
         .mode-btn {
             color: #0f172a;
-            text-decoration: none;
             font-weight: bold;
             padding: 12px;
             border-radius: 8px;
             display: block;
-            transition: opacity 0.2s;
         }
         .btn-shop { background-color: #eab308; }
         .btn-levels { background-color: #38bdf8; }
         .btn-ranked { background-color: #ef4444; color: #fff; }
 
-        .nav-links {
-            margin-top: 30px;
-        }
+        .nav-links { margin-top: 30px; }
         .nav-btn {
             color: #94a3b8;
             text-decoration: none;
@@ -108,29 +82,29 @@
     </header>
 
     <div class="modes-grid">
-        <!-- Квадрат 1: Прокачка / Маркет -->
-        <div class="mode-card card-shop" onclick="alert('Переход в Маркет Прокачки!')">
+        <!-- Квадрат 1: Прокачка -> открывает shooter-shop.html -->
+        <a href="shooter-shop.html" class="mode-card card-shop">
             <div class="mode-icon">🛒</div>
             <h2>Прокачка</h2>
             <p>Магазин для улучшения характеристик, покупки оружия и скинов.</p>
             <span class="mode-btn btn-shop">Открыть Маркет</span>
-        </div>
+        </a>
 
-        <!-- Квадрат 2: Игра с уровнями -->
-        <div class="mode-card card-levels" onclick="alert('Запуск Режима Уровней!')">
+        <!-- Квадрат 2: Уровни -->
+        <a href="#" onclick="alert('Режим Уровней в разработке!')" class="mode-card card-levels">
             <div class="mode-icon">🗺️</div>
             <h2>Уровни</h2>
             <p>Проходи сюжетную кампанию с усложняющимися этапами и заданиями.</p>
             <span class="mode-btn btn-levels">Играть по Уровням</span>
-        </div>
+        </a>
 
         <!-- Квадрат 3: Рейтинговый матч -->
-        <div class="mode-card card-ranked" onclick="alert('Запуск Рейтингового Матча!')">
+        <a href="#" onclick="alert('Рейтинговый матч временно недоступен!')" class="mode-card card-ranked">
             <div class="mode-icon">🏆</div>
             <h2>Рейтинговый Матч</h2>
             <p>Бесконечные волны врагов. Набери максимальный счёт и займи топ!</p>
             <span class="mode-btn btn-ranked">В бой (Ranked)</span>
-        </div>
+        </a>
     </div>
 
     <div class="nav-links">
