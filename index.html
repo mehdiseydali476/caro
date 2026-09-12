@@ -3,173 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CARO - Игровой Портал</title>
+    <title>Игровой Портал</title>
     <style>
-        body {
-            background-color: #0f172a;
-            color: #fff;
-            font-family: sans-serif;
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            box-sizing: border-box;
-        }
-        .top-bar {
-            width: 100%;
-            max-width: 900px;
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 20px;
-        }
-        .user-panel {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            background-color: #1e293b;
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: 1px solid #334155;
-        }
-        .auth-btn {
-            background-color: #38bdf8;
-            color: #0f172a;
-            text-decoration: none;
-            font-weight: bold;
-            padding: 6px 12px;
-            border-radius: 6px;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-        .auth-btn:hover {
-            background-color: #0284c7;
-            color: #fff;
+            padding: 20px;
         }
         header {
+            margin-bottom: 30px;
             text-align: center;
-            margin-bottom: 40px;
         }
         h1 {
-            color: #38bdf8;
             font-size: 2.5rem;
-            margin-bottom: 10px;
+            color: #00ffcc;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
         }
-        p {
-            color: #94a3b8;
-            font-size: 1.1rem;
-        }
-        .games-grid {
+        .container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
             width: 100%;
             max-width: 900px;
         }
-        .game-card {
-            background-color: #1e293b;
-            border: 2px solid #334155;
+        .card {
+            background-color: #1e1e1e;
+            border: 2px solid #333;
             border-radius: 12px;
-            padding: 25px;
+            padding: 20px;
             text-align: center;
+            transition: transform 0.2s, border-color 0.2s;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            transition: transform 0.2s, border-color 0.2s;
         }
-        .game-card:hover {
+        .card:hover {
             transform: translateY(-5px);
-            border-color: #38bdf8;
+            border-color: #00ffcc;
         }
-        .game-icon {
-            font-size: 3.5rem;
-            margin-bottom: 15px;
-        }
-        .game-card h2 {
-            margin: 0 0 10px 0;
-            color: #f8fafc;
-        }
-        .game-card p {
-            font-size: 0.95rem;
-            margin-bottom: 20px;
-            flex-grow: 1;
-        }
-        .play-btn {
-            background-color: #38bdf8;
-            color: #0f172a;
-            text-decoration: none;
-            font-weight: bold;
-            padding: 12px;
-            border-radius: 8px;
-            transition: background-color 0.2s;
-        }
-        .play-btn:hover {
-            background-color: #0284c7;
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
             color: #fff;
         }
-        .shooter-btn {
-            background-color: #ef4444;
+        .card p {
+            color: #aaa;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
         }
-        .shooter-btn:hover {
-            background-color: #dc2626;
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #00ffcc;
+            color: #121212;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 6px;
+            transition: background 0.2s;
         }
-        .shooter-card:hover {
-            border-color: #ef4444;
+        .btn:hover {
+            background-color: #00cca3;
+        }
+        .auth-bar {
+            margin-bottom: 20px;
+        }
+        .auth-btn {
+            background: #333;
+            color: #fff;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            border: 1px solid #555;
         }
     </style>
 </head>
 <body>
 
-    <!-- Верхняя панель авторизации -->
-    <div class="top-bar">
-        <div class="user-panel">
-            <span id="userInfo">👤 Гость</span>
-            <a href="auth.html" id="authBtn" class="auth-btn">Войти / Регистрация</a>
-        </div>
-    </div>
-
     <header>
-        <h1>🎮 CARO Games Portal</h1>
-        <p>Выбирай игру и начни играть прямо сейчас!</p>
+        <h1>🎮 Игровой Портал</h1>
     </header>
 
-    <div class="games-grid">
-        <!-- Карточка Snake -->
-        <div class="game-card">
-            <div class="game-icon">🐍</div>
-            <h2>Snake Game</h2>
-            <p>Классическая змейка со встроенным магазином скинов, жизнями и монетами!</p>
-            <a href="snake.html" class="play-btn">Играть в Snake</a>
-        </div>
-
-        <!-- Карточка 2D Shooter -->
-        <div class="game-card shooter-card">
-            <div class="game-icon">🎯</div>
-            <h2>2D Shooter</h2>
-            <p>Динамичный Top-Down шутер. Уничтожай волны врагов и прокачивай арсенал!</p>
-            <a href="shooter.html" class="play-btn shooter-btn">Играть в Shooter</a>
-        </div>
+    <div class="auth-bar">
+        <a href="auth.html" class="auth-btn">Авторизация / Профиль</a>
     </div>
 
-    <script>
-        // Проверка авторизации через localStorage
-        const loggedUser = localStorage.getItem('caro_logged_user');
-        const userInfo = document.getElementById('userInfo');
-        const authBtn = document.getElementById('authBtn');
+    <div class="container">
+        <!-- Tower Defense -->
+        <div class="card">
+            <div>
+                <h2>🏰 Tower Defense</h2>
+                <p>Защищай базу и героя, закупай стены, лаву, башни и казармы в магазине!</p>
+            </div>
+            <a href="tower-defence.html" class="btn">Играть</a>
+        </div>
 
-        if (loggedUser) {
-            userInfo.innerText = `👤 ${loggedUser}`;
-            authBtn.innerText = 'Выйти';
-            authBtn.href = '#';
-            authBtn.onclick = (e) => {
-                e.preventDefault();
-                localStorage.removeItem('caro_logged_user');
-                location.reload();
-            };
-        }
-    </script>
+        <!-- Шутер -->
+        <div class="card">
+            <div>
+                <h2>🎯 Шутер</h2>
+                <p>Динамичный арена-шутер с прокачкой оружия и волнами врагов.</p>
+            </div>
+            <a href="shooter.html" class="btn">Играть</a>
+        </div>
+
+        <!-- Змейка -->
+        <div class="card">
+            <div>
+                <h2>🐍 Змейка</h2>
+                <p>Классическая змейка. Собирай еду и побеждай рекорды!</p>
+            </div>
+            <a href="snake.html" class="btn">Играть</a>
+        </div>
+
+        <!-- Магазин -->
+        <div class="card">
+            <div>
+                <h2>🛒 Общий Магазин</h2>
+                <p>Покупай скины и улучшай характеристики перед боем.</p>
+            </div>
+            <a href="shop.html" class="btn">В магазин</a>
+        </div>
+    </div>
 
 </body>
 </html>
