@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Tower Defense 16x9</title>
+    <title>Tower Defense</title>
     <style>
         body {
             margin: 0;
@@ -30,13 +30,14 @@
             background: #2b2b2b;
             display: block;
         }
-        #shop {
+        .panel {
             display: flex;
             gap: 10px;
             margin: 10px;
             background: #333;
             padding: 10px;
             border-radius: 8px;
+            align-items: center;
         }
         .btn {
             background: #444;
@@ -49,7 +50,11 @@
             transition: 0.2s;
         }
         .btn:hover { background: #555; }
-        .btn.active { border-color: #00ffcc; background: #225544; }
+        .hint {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -57,18 +62,21 @@
 <div id="ui">
     <div>База HP: <span id="base-hp" style="color: #ff5555;">100</span></div>
     <div>Игрок HP: <span id="player-hp" style="color: #55ff55;">100</span></div>
-    <div>Монеты: <span id="money" style="color: #ffff55;">150</span>$</div>
+    <div>Монеты: <span id="money" style="color: #ffff55;">200</span>$</div>
 </div>
 
 <div id="canvas-container">
     <canvas id="gameCanvas" width="960" height="540"></canvas>
 </div>
 
-<div id="shop">
+<div class="hint">💡 **Двойной клик** по постройке повышает её уровень (Lvl) и характеристики!</div>
+
+<div class="panel">
+    <strong>Магазин построек:</strong>
     <button class="btn" onclick="selectItem('wall')">Стена ($30)</button>
     <button class="btn" onclick="selectItem('lava')">Лава ($50)</button>
-    <button class="btn" onclick="selectItem('arrow')">Башня Стрелков ($80)</button>
-    <button class="btn" onclick="selectItem('aoe')">АоЕ Установка ($120)</button>
+    <button class="btn" onclick="selectItem('arrow')">Башня ($80)</button>
+    <button class="btn" onclick="selectItem('aoe')">АоЕ ($120)</button>
     <button class="btn" onclick="selectItem('barracks')">Казарма ($150)</button>
     <button class="btn" style="background:#883333;" onclick="deselectItem()">Отмена</button>
 </div>
@@ -79,61 +87,52 @@ const ctx = canvas.getContext('2d');
 
 const COLS = 16;
 const ROWS = 9;
-const CELL_SIZE = canvas.width / COLS; // 60px
+const CELL_SIZE = canvas.width / COLS;
 
-let money = 150;
+let money = 200;
 let gameOver = false;
 let selectedBuilding = null;
 
-// Нажатые клавиши стрелок
 const keys = {};
 window.addEventListener('keydown', e => keys[e.key] = true);
 window.addEventListener('keyup', e => keys[e.key] = false);
 
-// Объект Базы (занимает левый край 0-й колонки)
-const base = { hp: 100, maxHp: 100 };
+// Статы игрока из Маркета
+const savedStats = JSON.parse(localStorage.getItem('playerUpgrades') || '{}');
 
-// Объект Игрока
+const base = { hp: 100, maxHp: 100 };
 const player = {
     x: CELL_SIZE * 2,
     y: canvas.height / 2,
     radius: 15,
-    speed: 3,
-    hp: 100,
-    maxHp: 100,
-    attackRange: 150,
+    speed: 3 + (savedStats.speedBonus || 0),
+    hp: 100 + (savedStats.hpBonus || 0),
+    maxHp: 100 + (savedStats.hpBonus || 0),
+    damage: 15 + (savedStats.dmgBonus || 0),
+    attackRange: 160,
     attackCooldown: 0,
-    attackRate: 20 // кадров между выстрелами
+    attackRate: 20
 };
 
-// Массивы объектов
 const grid = Array(ROWS).fill(null).map(() => Array(COLS).fill(null));
 const enemies = [];
 const allies = [];
 const bullets = [];
 
-// Цены построек
 const COSTS = { wall: 30, lava: 50, arrow: 80, aoe: 120, barracks: 150 };
 
-// Выбор предмета в магазине
 function selectItem(type) {
-    if (money >= COSTS[type]) {
-        selectedBuilding = type;
-    } else {
-        alert("Недостаточно денег!");
-    }
+    if (money >= COSTS[type]) selectedBuilding = type;
+    else alert("Недостаточно денег!");
 }
 function deselectItem() { selectedBuilding = null; }
 
-// Размещение постройки мышкой
 canvas.addEventListener('click', (e) => {
     if (!selectedBuilding) return;
-    
     const rect = canvas.getBoundingClientRect();
     const c = Math.floor((e.clientX - rect.left) / CELL_SIZE);
     const r = Math.floor((e.clientY - rect.top) / CELL_SIZE);
 
-    // Строить можно только на левой половине (колонки 0..7) и если клетка пуста
     if (c < 8 && !grid[r][c]) {
         money -= COSTS[selectedBuilding];
         grid[r][c] = createBuilding(selectedBuilding, r, c);
@@ -141,21 +140,39 @@ canvas.addEventListener('click', (e) => {
     }
 });
 
+// Двойной клик — УЛУЧШЕНИЕ ПОСТРОЙКИ (без починки HP)
+canvas.addEventListener('dblclick', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const c = Math.floor((e.clientX - rect.left) / CELL_SIZE);
+    const r = Math.floor((e.clientY - rect.top) / CELL_SIZE);
+
+    const b = grid[r][c];
+    if (b) {
+        const upgradeCost = Math.round(COSTS[b.type] * 0.6);
+        if (money >= upgradeCost) {
+            money -= upgradeCost;
+            b.level = (b.level || 1) + 1;
+            b.maxHp += 50; // Увеличиваем макс. HP, но текущее HP не чиним!
+            alert(`Постройка улучшена до ${b.level} ур.!`);
+        } else {
+            alert(`Для улучшения нужно $${upgradeCost}`);
+        }
+    }
+});
+
 function createBuilding(type, r, c) {
-    const b = { type, r, c, x: c * CELL_SIZE, y: r * CELL_SIZE, hp: 100, maxHp: 100, timer: 0 };
+    const b = { type, r, c, x: c * CELL_SIZE, y: r * CELL_SIZE, hp: 100, maxHp: 100, timer: 0, level: 1 };
     if (type === 'wall') b.hp = b.maxHp = 250;
     if (type === 'barracks') b.hp = b.maxHp = 150;
     return b;
 }
 
-// Передвижение игрока (Стрелки)
 function updatePlayer() {
     if (keys['ArrowUp'] && player.y > player.radius) player.y -= player.speed;
     if (keys['ArrowDown'] && player.y < canvas.height - player.radius) player.y += player.speed;
     if (keys['ArrowLeft'] && player.x > player.radius) player.x -= player.speed;
     if (keys['ArrowRight'] && player.x < (canvas.width / 2) - player.radius) player.x += player.speed;
 
-    // Автоатака игрока по ближайшему мобу
     if (player.attackCooldown > 0) player.attackCooldown--;
     else {
         let nearest = null;
@@ -166,18 +183,17 @@ function updatePlayer() {
         });
 
         if (nearest) {
-            bullets.push({ x: player.x, y: player.y, target: nearest, speed: 7, damage: 15, color: '#00ffff' });
+            bullets.push({ x: player.x, y: player.y, target: nearest, speed: 7, damage: player.damage, color: '#00ffff' });
             player.attackCooldown = player.attackRate;
         }
     }
 }
 
-// Спавн мобов справа
 let spawnTimer = 0;
 function spawnEnemies() {
     spawnTimer++;
-    if (spawnTimer % 120 === 0) { // каждые 2 секунды
-        const type = Math.floor(Math.random() * 4); // 4 вида мобов
+    if (spawnTimer % 110 === 0) {
+        const type = Math.floor(Math.random() * 4);
         const r = Math.floor(Math.random() * ROWS);
         const enemy = {
             x: canvas.width - 20,
@@ -187,50 +203,46 @@ function spawnEnemies() {
             hp: 40,
             maxHp: 40,
             reward: 15,
-            targetType: 'base' // по умолчанию идут на базу
+            targetType: 'base'
         };
 
-        if (type === 1) { enemy.speed = 1.8; enemy.hp = 25; enemy.reward = 10; enemy.targetType = 'player'; } // Быстрый
-        if (type === 2) { enemy.speed = 0.6; enemy.hp = 100; enemy.reward = 30; } // Танк
-        if (type === 3) { enemy.speed = 1.1; enemy.hp = 50; enemy.reward = 20; enemy.targetType = 'building'; } // Ломатель башен
+        if (type === 1) { enemy.speed = 1.8; enemy.hp = 25; enemy.maxHp = 25; enemy.reward = 10; enemy.targetType = 'player'; }
+        if (type === 2) { enemy.speed = 0.6; enemy.hp = 110; enemy.maxHp = 110; enemy.reward = 35; }
+        if (type === 3) { enemy.speed = 1.1; enemy.hp = 50; enemy.maxHp = 50; enemy.reward = 20; enemy.targetType = 'building'; }
 
         enemies.push(enemy);
     }
 }
 
-// Обновление состояния игры
 function update() {
     if (gameOver) return;
 
     updatePlayer();
     spawnEnemies();
 
-    // Обновление построек (Лава, АоЕ, Казармы, Башни)
     for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
             const b = grid[r][c];
             if (!b) continue;
 
             b.timer++;
-            // Башня со стрелками
-            if (b.type === 'arrow' && b.timer % 40 === 0) {
+            const lvlBonus = (b.level - 1) * 10;
+
+            if (b.type === 'arrow' && b.timer % Math.max(15, 40 - lvlBonus) === 0) {
                 let target = enemies.find(e => Math.hypot(e.x - (b.x + 30), e.y - (b.y + 30)) < 200);
-                if (target) bullets.push({ x: b.x + 30, y: b.y + 30, target, speed: 6, damage: 20, color: '#ffff00' });
+                if (target) bullets.push({ x: b.x + 30, y: b.y + 30, target, speed: 6, damage: 20 + lvlBonus, color: '#ffff00' });
             }
-            // АоЕ Установка (импульс по радиусу раз в 2.5 сек)
-            if (b.type === 'aoe' && b.timer % 150 === 0) {
+            if (b.type === 'aoe' && b.timer % 140 === 0) {
                 enemies.forEach(e => {
-                    if (Math.hypot(e.x - (b.x + 30), e.y - (b.y + 30)) < 120) e.hp -= 35;
+                    if (Math.hypot(e.x - (b.x + 30), e.y - (b.y + 30)) < 120 + lvlBonus) e.hp -= (35 + lvlBonus);
                 });
             }
-            // Казармы (спавн союзников)
-            if (b.type === 'barracks' && b.timer % 300 === 0) {
-                allies.push({ x: b.x + 60, y: b.y + 30, speed: 1.2, hp: 30, damage: 10 });
+            if (b.type === 'barracks' && b.timer % Math.max(120, 280 - lvlBonus * 10) === 0) {
+                allies.push({ x: b.x + 60, y: b.y + 30, speed: 1.2, hp: 35 + lvlBonus, damage: 12 + lvlBonus });
             }
         }
     }
 
-    // Движение союзников из казарм
     allies.forEach((a, i) => {
         a.x += a.speed;
         enemies.forEach(e => {
@@ -242,16 +254,15 @@ function update() {
         if (a.hp <= 0 || a.x > canvas.width) allies.splice(i, 1);
     });
 
-    // Движение и логика мобов
     enemies.forEach((e, i) => {
-        // Урон от лавы
         const curR = Math.floor(e.y / CELL_SIZE);
         const curC = Math.floor(e.x / CELL_SIZE);
+
         if (grid[curR] && grid[curR][curC] && grid[curR][curC].type === 'lava') {
-            e.hp -= 0.4;
+            const lavaLvl = grid[curR][curC].level || 1;
+            e.hp -= 0.4 * lavaLvl;
         }
 
-        // Выбор цели движения
         let targetX = 0, targetY = e.y;
         if (e.targetType === 'player') { targetX = player.x; targetY = player.y; }
 
@@ -259,32 +270,27 @@ function update() {
         e.x += Math.cos(angle) * e.speed;
         e.y += Math.sin(angle) * e.speed;
 
-        // Атака игрока
         if (Math.hypot(player.x - e.x, player.y - e.y) < player.radius + 10) {
-            player.hp -= 0.2;
+            player.hp -= 0.25;
         }
 
-        // Атака построек
         if (grid[curR] && grid[curR][curC] && grid[curR][curC].type !== 'lava') {
             grid[curR][curC].hp -= 0.5;
             if (grid[curR][curC].hp <= 0) grid[curR][curC] = null;
         }
 
-        // Достижение базы
         if (e.x <= CELL_SIZE) {
             base.hp -= 10;
             enemies.splice(i, 1);
             return;
         }
 
-        // Смерть моба (авто-начисление денег)
         if (e.hp <= 0) {
             money += e.reward;
             enemies.splice(i, 1);
         }
     });
 
-    // Движение снарядов
     bullets.forEach((b, i) => {
         if (!b.target || b.target.hp <= 0) { bullets.splice(i, 1); return; }
         const angle = Math.atan2(b.target.y - b.y, b.target.x - b.x);
@@ -297,22 +303,16 @@ function update() {
         }
     });
 
-    // Проверка поражения
-    if (base.hp <= 0 || player.hp <= 0) {
-        gameOver = true;
-    }
+    if (base.hp <= 0 || player.hp <= 0) gameOver = true;
 
-    // Обновление UI
     document.getElementById('base-hp').innerText = Math.max(0, Math.ceil(base.hp));
     document.getElementById('player-hp').innerText = Math.max(0, Math.ceil(player.hp));
     document.getElementById('money').innerText = money;
 }
 
-// Отрисовка графики
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Отрисовка сетки 16x9
     ctx.strokeStyle = '#3a3a3a';
     for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
@@ -320,7 +320,6 @@ function draw() {
         }
     }
 
-    // Линия разделения пополам
     ctx.strokeStyle = '#555';
     ctx.setLineDash([5, 5]);
     ctx.beginPath();
@@ -329,11 +328,9 @@ function draw() {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Отрисовка базы (красная полоса слева)
     ctx.fillStyle = '#aa2222';
     ctx.fillRect(0, 0, 15, canvas.height);
 
-    // Отрисовка построек
     for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
             const b = grid[r][c];
@@ -346,23 +343,28 @@ function draw() {
 
             ctx.fillRect(b.x + 2, b.y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
 
-            // Полоска HP постройки
+            if (b.level > 1) {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '12px sans-serif';
+                ctx.fillText(`Lvl ${b.level}`, b.x + 5, b.y + 15);
+            }
+
             if (b.type !== 'lava') {
                 ctx.fillStyle = '#ff0000';
-                ctx.fillRect(b.x + 5, b.y + 5, CELL_SIZE - 10, 4);
+                ctx.fillRect(b.x + 5, b.y + CELL_SIZE - 10, CELL_SIZE - 10, 4);
                 ctx.fillStyle = '#00ff00';
-                ctx.fillRect(b.x + 5, b.y + 5, (CELL_SIZE - 10) * (b.hp / b.maxHp), 4);
+                ctx.fillRect(b.x + 5, b.y + CELL_SIZE - 10, (CELL_SIZE - 10) * Math.max(0, (b.hp / b.maxHp)), 4);
             }
         }
     }
 
-    // Отрисовка игрока
+    // Игрок
     ctx.fillStyle = '#00ffcc';
     ctx.beginPath();
     ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
     ctx.fill();
 
-    // Отрисовка союзников
+    // Союзники
     ctx.fillStyle = '#3388ff';
     allies.forEach(a => {
         ctx.beginPath();
@@ -370,19 +372,31 @@ function draw() {
         ctx.fill();
     });
 
-    // Отрисовка мобов
+    // Отрисовка мобов и их HP баров
     enemies.forEach(e => {
-        if (e.type === 0) ctx.fillStyle = '#ff3333'; // Обычный
-        if (e.type === 1) ctx.fillStyle = '#ff9900'; // Быстрый
-        if (e.type === 2) ctx.fillStyle = '#880000'; // Танк
-        if (e.type === 3) ctx.fillStyle = '#ffff00'; // Разрушитель
+        const radius = e.type === 2 ? 16 : 10;
+
+        if (e.type === 0) ctx.fillStyle = '#ff3333';
+        if (e.type === 1) ctx.fillStyle = '#ff9900';
+        if (e.type === 2) ctx.fillStyle = '#880000';
+        if (e.type === 3) ctx.fillStyle = '#ffff00';
 
         ctx.beginPath();
-        ctx.arc(e.x, e.y, e.type === 2 ? 16 : 10, 0, Math.PI * 2);
+        ctx.arc(e.x, e.y, radius, 0, Math.PI * 2);
         ctx.fill();
+
+        // Шкала HP над головой бота
+        const barWidth = 26;
+        const barHeight = 4;
+        const barX = e.x - barWidth / 2;
+        const barY = e.y - radius - 8;
+
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+        ctx.fillStyle = '#00ff00';
+        ctx.fillRect(barX, barY, barWidth * Math.max(0, (e.hp / e.maxHp)), barHeight);
     });
 
-    // Отрисовка снарядов
     bullets.forEach(b => {
         ctx.fillStyle = b.color;
         ctx.beginPath();
@@ -390,7 +404,6 @@ function draw() {
         ctx.fill();
     });
 
-    // Экран проигравшего
     if (gameOver) {
         ctx.fillStyle = 'rgba(0,0,0,0.85)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
