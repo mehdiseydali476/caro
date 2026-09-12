@@ -15,6 +15,37 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .top-bar {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        .user-panel {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background-color: #1e293b;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .auth-btn {
+            background-color: #38bdf8;
+            color: #0f172a;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        .auth-btn:hover {
+            background-color: #0284c7;
+            color: #fff;
         }
         header {
             text-align: center;
@@ -91,6 +122,14 @@
 </head>
 <body>
 
+    <!-- Верхняя панель авторизации -->
+    <div class="top-bar">
+        <div class="user-panel">
+            <span id="userInfo">👤 Гость</span>
+            <a href="auth.html" id="authBtn" class="auth-btn">Войти / Регистрация</a>
+        </div>
+    </div>
+
     <header>
         <h1>🎮 CARO Games Portal</h1>
         <p>Выбирай игру и начни играть прямо сейчас!</p>
@@ -101,7 +140,7 @@
         <div class="game-card">
             <div class="game-icon">🐍</div>
             <h2>Snake Game</h2>
-            <p>Классическая змейка с покупкой скинов, сохранением жизней и системой монет!</p>
+            <p>Классическая змейка со встроенным магазином скинов, жизнями и монетами!</p>
             <a href="snake.html" class="play-btn">Играть в Snake</a>
         </div>
 
@@ -113,6 +152,24 @@
             <a href="shooter.html" class="play-btn shooter-btn">Играть в Shooter</a>
         </div>
     </div>
+
+    <script>
+        // Проверка авторизации через localStorage
+        const loggedUser = localStorage.getItem('caro_logged_user');
+        const userInfo = document.getElementById('userInfo');
+        const authBtn = document.getElementById('authBtn');
+
+        if (loggedUser) {
+            userInfo.innerText = `👤 ${loggedUser}`;
+            authBtn.innerText = 'Выйти';
+            authBtn.href = '#';
+            authBtn.onclick = (e) => {
+                e.preventDefault();
+                localStorage.removeItem('caro_logged_user');
+                location.reload();
+            };
+        }
+    </script>
 
 </body>
 </html>
