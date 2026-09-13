@@ -63,6 +63,7 @@
     <div>База HP: <span id="base-hp" style="color: #ff5555;">100</span></div>
     <div>Игрок HP: <span id="player-hp" style="color: #55ff55;">100</span></div>
     <div>Монеты: <span id="money" style="color: #ffff55;">200</span>$</div>
+    <div>Волна: <span id="wave-num" style="color: #ff9900;">1</span></div>
 </div>
 
 <div id="canvas-container">
@@ -189,26 +190,51 @@ function updatePlayer() {
     }
 }
 
+// Система волн и нарастающей сложности
 let spawnTimer = 0;
+let currentWave = 1;
+let waveTimer = 0;
+
 function spawnEnemies() {
     spawnTimer++;
-    if (spawnTimer % 110 === 0) {
+    waveTimer++;
+
+    // Каждые 30 секунд (1800 кадров при 60 FPS) наступает новая волна
+    if (waveTimer % 1800 === 0) {
+        currentWave++;
+    }
+
+    // Со временем интервал спавна уменьшается (от 110 до минимума 35 кадров)
+    const spawnInterval = Math.max(35, 110 - (currentWave - 1) * 8);
+
+    if (spawnTimer % Math.floor(spawnInterval) === 0) {
         const type = Math.floor(Math.random() * 4);
         const r = Math.floor(Math.random() * ROWS);
+
+        // Множитель HP увеличивается на +15% за каждую новую волну
+        const hpMultiplier = 1 + (currentWave - 1) * 0.15;
+
+        let baseHp = 40;
+        let baseReward = 15;
+        let speed = 1;
+        let targetType = 'base';
+
+        if (type === 1) { speed = 1.8; baseHp = 25; baseReward = 10; targetType = 'player'; }
+        if (type === 2) { speed = 0.6; baseHp = 110; baseReward = 35; }
+        if (type === 3) { speed = 1.1; baseHp = 50; baseReward = 20; targetType = 'building'; }
+
+        const scaledHp = Math.round(baseHp * hpMultiplier);
+
         const enemy = {
             x: canvas.width - 20,
             y: r * CELL_SIZE + CELL_SIZE / 2,
             type: type,
-            speed: 1,
-            hp: 40,
-            maxHp: 40,
-            reward: 15,
-            targetType: 'base'
+            speed: speed,
+            hp: scaledHp,
+            maxHp: scaledHp,
+            reward: baseReward + Math.floor((currentWave - 1) * 2),
+            targetType: targetType
         };
-
-        if (type === 1) { enemy.speed = 1.8; enemy.hp = 25; enemy.maxHp = 25; enemy.reward = 10; enemy.targetType = 'player'; }
-        if (type === 2) { enemy.speed = 0.6; enemy.hp = 110; enemy.maxHp = 110; enemy.reward = 35; }
-        if (type === 3) { enemy.speed = 1.1; enemy.hp = 50; enemy.maxHp = 50; enemy.reward = 20; enemy.targetType = 'building'; }
 
         enemies.push(enemy);
     }
@@ -308,6 +334,7 @@ function update() {
     document.getElementById('base-hp').innerText = Math.max(0, Math.ceil(base.hp));
     document.getElementById('player-hp').innerText = Math.max(0, Math.ceil(player.hp));
     document.getElementById('money').innerText = money;
+    document.getElementById('wave-num').innerText = currentWave;
 }
 
 function draw() {
